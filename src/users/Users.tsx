@@ -1,33 +1,31 @@
 import { useForm } from 'react-hook-form'
 import { Box, Button, FormControl, FormHelperText, FormLabel, Input, Stack } from '@mui/joy'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-type FormSchema = {
-  name: string;
-  email: string;
+const patterns = {
+  email: /^[a-zA-Z0-9.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 }
 
+const schema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }),
+  email: z.string()
+    .min(1, { message: 'Email is required' })
+    .refine((x) => patterns.email.test(x), { message: 'Email is not valid' })
+})
+
+type FormSchema = z.infer<typeof schema>
+
 export function Users() {
-  const { register, formState: { errors } } = useForm<FormSchema>({ mode: 'all' })
-  console.log(errors)
+  const { register, formState: { errors } } = useForm<FormSchema>({
+    mode: 'all',
+    resolver: zodResolver(schema)
+  })
+
+  console.log('errors', errors)
 
   return (
     <>
-      {/*<input
-        {...register('name', {
-          required: { value: true, message: 'This field is required' },
-          maxLength: { value: 5, message: 'Too many characters' }
-        })}
-        placeholder={'Enter your name'} />
-      <p>{errors.name?.message}</p>
-
-      <input
-        {...register('email', {
-          required: { value: true, message: 'This field is required' },
-          maxLength: { value: 5, message: 'Too many characters' }
-        })}
-        placeholder={'myemail@mycompany.com'} />
-      <p>{errors.email?.message}</p>*/}
-
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Stack spacing={1}>
 
@@ -37,10 +35,7 @@ export function Users() {
               <FormLabel>Name</FormLabel>
               <Box sx={{ width: '500px' }}>
                 <Input
-                  {...register('name', {
-                    required: { value: true, message: 'This field is required' },
-                    maxLength: { value: 5, message: 'Too many characters' }
-                  })}
+                  {...register('name')}
                   placeholder="Type your name here…"
                   size="sm"
                 />
@@ -53,10 +48,7 @@ export function Users() {
           <FormControl error={!!errors.email}>
             <FormLabel>Email</FormLabel>
             <Input
-              {...register('email', {
-                required: { value: true, message: 'This field is required' },
-                maxLength: { value: 5, message: 'Too many characters' }
-              })}
+              {...register('email')}
               placeholder="some@some.com"
               size="sm"
             />
